@@ -1,5 +1,6 @@
 from dataclasses import fields
 from pyexpat import model
+from django.db import models
 from rest_framework import serializers
 from backend.models import Projects, Users, Contribution
 
@@ -17,3 +18,8 @@ class ContributionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contribution
         fields = ('id', 'userId', 'projectId', 'amount', 'createAt')
+
+class EditProject(serializers.ModelSerializer):
+    class Meta:
+        model = Projects
+        fields = ('id', 'currentPrice', 'donationCount')

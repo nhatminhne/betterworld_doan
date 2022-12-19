@@ -8,9 +8,13 @@ from django.http import HttpRequest
 from django.contrib.auth import authenticate, login, logout
 
 from backend.models import Contribution, Projects, Users
-from backend.serializers import ContributionSerializer, ProjectSerializer, UserSerializer
+from backend.serializers import ContributionSerializer, ProjectSerializer, UserSerializer, EditProject
 
 from .forms import CreateUserForm
+from rest_framework.decorators import api_view
+import requests
+import json
+import logging
 
 # Create your views here.
 @csrf_exempt
@@ -101,6 +105,8 @@ def projectAPI(request, id=0):
         project_data = JSONParser().parse(request)
         project = Projects.objects.get(id=project_data['id'])
         project_serializer = ProjectSerializer(project, data=project_data)
+        logger = logging.getLogger("django")
+        logger.info(project_serializer)
         if project_serializer.is_valid():
             project_serializer.save()
             response = JsonResponse("Update successfully", safe=False)
@@ -155,7 +161,6 @@ def userAPI(request, id=0):
             user_serializer.save()
             response = JsonResponse("Update successfully", safe=False)
             response['Access-Control-Allow-Origin'] = '*'
-            response['Access-Control-Allow-Methods'] = '*'
             response['Access-Control-Allow-Credentials'] = 'true'
             return response
         response = JsonResponse("Failed to Update", safe=False)
@@ -178,22 +183,53 @@ def userAPI(request, id=0):
 
 def updateProjectContribution(projectID, amount):
     project = Projects.objects.get(id=projectID)
-    project_serializer = ProjectSerializer(project, data={
+    project_serializer = EditProject(project, data={
         'id': project.id, 
-        'creatorId': project.creatorId, 
-        'name': project.name,
-        'category': project.category, 
-        'description': project.description, 
-        'image': project.image, 
-        'targetPrice': project.targetPrice, 
-        'isFeatured': project.isFeatured, 
-        'currentPrice': project.currentPrice + amount, 
-        'donateCount': project.donateCount + 1, 
-        'createAt': project.createAt}
-    )
+        #'creatorId': project.creatorId, 
+        #'name': project.name,
+        #'category': project.category, 
+        #'description': project.description, 
+        #'image': project.image, 
+        #'imageName': project.imageName,
+        #'targetPrice': project.targetPrice, 
+        #'isFeatured': project.isFeatured, 
+        'currentPrice': project.currentPrice + int(amount, base=10), 
+        'donationCount': project.donationCount + 1,
+        #'createAt': project.createAt
+    })
+    '''
+    logger = logging.getLogger("django")
+    logger.info(type(project.id))
+    logger.info(type(project.creatorId))
+    logger.info(type(project.name))
+    logger.info(type(project.category))
+    logger.info(type(project.description))
+    logger.info(type(project.image))
+    logger.info(type(project.imageName))
+    logger.info(type(project.targetPrice))
+    logger.info(type(project.isFeatured))
+    logger.info(type(project.currentPrice + int(amount, base=10)))
+    logger.info(type(project.donationCount + 1))
+    logger.info(type(project.createAt))
+    logger.info(project.id)
+    logger.info(project.creatorId)
+    logger.info(project.name)
+    logger.info(project.category)
+    logger.info(project.description)
+    logger.info(project.image)
+    logger.info(project.imageName)
+    logger.info(project.targetPrice)
+    logger.info(project.isFeatured)
+    logger.info(project.currentPrice + int(amount, base=10))
+    logger.info(project.donationCount + 1)
+    logger.info(project.createAt)
+    logger.info(project_serializer)
+    '''
     if project_serializer.is_valid():
         project_serializer.save()
-    return 0
+        return 1
+    else: 
+        return 0
 
 @csrf_exempt
 def contributionAPI(request, id=0):
@@ -208,12 +244,13 @@ def contributionAPI(request, id=0):
         contribution_data = JSONParser().parse(request)
         contribution_serializer = ContributionSerializer(data=contribution_data)
         if contribution_serializer.is_valid():
-            contribution_serializer.save()
-            response = JsonResponse("Added successfully", safe=False)
-            response['Access-Control-Allow-Origin'] = '*'
-            response['Access-Control-Allow-Credentials'] = 'true'
-            updateProjectContribution(contribution_data['projectID'], contribution_data['amount'])
-            return response
+            check = updateProjectContribution(contribution_data['projectId'], contribution_data['amount'])
+            if check == 1:
+                contribution_serializer.save()
+                response = JsonResponse("Added successfully", safe=False)
+                response['Access-Control-Allow-Origin'] = '*'
+                response['Access-Control-Allow-Credentials'] = 'true'
+                return response
         response = JsonResponse("Failed to Add", safe=False)
         response['Access-Control-Allow-Origin'] = '*'
         response['Access-Control-Allow-Credentials'] = 'true'
@@ -233,7 +270,7 @@ def contributionAPI(request, id=0):
         response['Access-Control-Allow-Credentials'] = 'true'
         return response
     elif request.method == 'DELETE':
-        contribution = Contribution.objects.get(contributionID=id)
+        contribution = Contribution.objects.get(id=id)
         contribution.delete()
         response = JsonResponse("Delete successfully", safe=False)
         response['Access-Control-Allow-Origin'] = '*'

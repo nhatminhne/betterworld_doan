@@ -14,8 +14,26 @@ import dj_database_url
 import os
 from django.test.runner import DiscoverRunner
 from pathlib import Path
-
-
+'''''
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'C:/Users/minh.b.nguyen/Desktop/LTW/doan/doan/funding/debug.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
+'''
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = Path(__file__).resolve().parent.parent
 

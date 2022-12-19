@@ -13,5 +13,7 @@ urlpatterns=[
 
     re_path(r'^register$', views.registerPage, name='register'),
     re_path(r'^login$', views.loginPage, name='login'),
-    re_path(r'^home$', views.homePgae, name='home')
+    re_path(r'^home$', views.homePgae, name='home'),
+
+    #re_path(r'^checkout$', views.checkout, name='checkout'),
 ]
